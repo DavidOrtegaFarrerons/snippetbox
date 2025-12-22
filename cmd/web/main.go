@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	_ "github.com/go-sql-driver/mysql"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -10,9 +11,10 @@ import (
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	snippets *models.SnippetModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -32,12 +34,18 @@ func main() {
 	//Database will be closed when main function ends, no matter if it's a normal return or a fatal
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		snippets: &models.SnippetModel{
 			DB: db,
 		},
+		templateCache: templateCache,
 	}
 
 	srv := &http.Server{
