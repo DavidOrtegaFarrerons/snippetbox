@@ -5,6 +5,7 @@ import (
 	"github.com/justinas/alice"
 	"net/http"
 	"snippetbox.davidortegafarrerons.com/internal/web"
+	"snippetbox.davidortegafarrerons.com/ui"
 )
 
 func (app *application) routes() http.Handler {
@@ -15,11 +16,11 @@ func (app *application) routes() http.Handler {
 	})
 
 	fileServer := http.FileServer(
-		web.NeuteredFileSystem(http.Dir("./ui/static")),
+		web.NeuteredFileSystem(http.FS(ui.Files)),
 	)
 
 	router.Handler(http.MethodGet, "/static", http.NotFoundHandler())
-	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
+	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
