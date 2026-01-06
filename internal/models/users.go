@@ -3,10 +3,11 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"github.com/go-sql-driver/mysql"
-	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserModelInterface interface {
@@ -78,7 +79,7 @@ func (m UserModel) Authenticate(email, password string) (int, error) {
 
 func (m *UserModel) Exists(id int) (bool, error) {
 	var exists bool
-	stmt := `SELECT EXISTS(SELECT true FROM users WHERE id = ?`
+	stmt := `SELECT EXISTS(SELECT true FROM users WHERE id = ?)`
 
 	err := m.DB.QueryRow(stmt, id).Scan(&exists)
 
