@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"strconv"
+
+	"github.com/julienschmidt/httprouter"
 	"snippetbox.davidortegafarrerons.com/internal/models"
 	"snippetbox.davidortegafarrerons.com/internal/validator"
-	"strconv"
 )
 
 func ping(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +136,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 	form.CheckField(validator.NotBlank(form.Name), "name", "This field cannot be blank")
 	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
-	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "this field must be a valid email address")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
 	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 characters long")
 
@@ -149,12 +150,16 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	err = app.users.Insert(form.Name, form.Email, form.Password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
-			form.AddFieldError("email", "Email address already in use")
+			form.AddFieldError("email", "Email address is already in use")
 
 			data := app.newTemplateData(r)
 			data.Form = form
 			app.render(w, http.StatusUnprocessableEntity, "signup.html", data)
+		} else {
+			app.serverError(w, err)
 		}
+
+		return
 	}
 
 	app.sessionManager.Put(r.Context(), "flash", "Your signup was successful. Please log in.")
@@ -191,6 +196,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 		data := app.newTemplateData(r)
 		data.Form = form
 		app.render(w, http.StatusUnprocessableEntity, "login.html", data)
+		return
 	}
 
 	id, err := app.users.Authenticate(form.Email, form.Password)
