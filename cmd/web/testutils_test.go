@@ -20,7 +20,7 @@ import (
 
 // Define a regular expression which captures the CSRF token value from the
 // HTML for our user signup page.
-var csrfTokenRX = regexp.MustCompile(`<input type='hidden' name='csrf_token' value='(.+)'>`)
+var csrfTokenRX = regexp.MustCompile(`<input type='hidden' name='csrf_token' value='(.+?)'>`)
 
 func extractCSRFToken(t *testing.T, body string) string {
 
@@ -32,7 +32,7 @@ func extractCSRFToken(t *testing.T, body string) string {
 	}
 
 	//We use unescape because the html template is already escaped
-	return html.UnescapeString(string(matches[1]))
+	return html.UnescapeString(matches[1])
 }
 
 func newTestApplication(t *testing.T) *application {

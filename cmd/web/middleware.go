@@ -58,13 +58,38 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 }
 
 func (app *application) noSurf(next http.Handler) http.Handler {
-
 	csrfHandler := nosurf.New(next)
+
 	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
 		Path:     "/",
 		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 	})
+
+	csrfHandler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.errorLog.Println("CSRF FAILURE")
+		app.errorLog.Println("Method:", r.Method)
+		app.errorLog.Println("URL:", r.URL.String())
+		app.errorLog.Println("Host:", r.Host)
+
+		app.errorLog.Println("Cookies:")
+		for _, c := range r.Cookies() {
+			app.errorLog.Printf("  %s=%s\n", c.Name, c.Value)
+		}
+
+		app.errorLog.Println("Headers:")
+		for k, v := range r.Header {
+			app.errorLog.Printf("  %s: %v\n", k, v)
+		}
+
+		app.errorLog.Println("CSRF token (context):", nosurf.Token(r))
+
+		r.ParseForm()
+		app.errorLog.Println("Form values:", r.PostForm)
+
+		http.Error(w, "CSRF validation failed", http.StatusBadRequest)
+	}))
 
 	return csrfHandler
 }
