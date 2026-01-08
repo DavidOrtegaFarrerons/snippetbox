@@ -228,7 +228,13 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
 
-	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+	redirect := "/snippet/create"
+
+	if sessionRedirect := app.sessionManager.PopString(r.Context(), "redirectPathAfterLogin"); sessionRedirect != "" {
+		redirect = sessionRedirect
+	}
+
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
 
 }
 
