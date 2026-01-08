@@ -4,9 +4,10 @@ import (
 	"html/template"
 	"io/fs"
 	"path/filepath"
+	"time"
+
 	"snippetbox.davidortegafarrerons.com/internal/models"
 	"snippetbox.davidortegafarrerons.com/ui"
-	"time"
 )
 
 type templateData struct {
@@ -17,6 +18,7 @@ type templateData struct {
 	Flash           string
 	IsAuthenticated bool
 	CSRFToken       string
+	User            *models.User
 }
 
 func humanDate(t time.Time) string {

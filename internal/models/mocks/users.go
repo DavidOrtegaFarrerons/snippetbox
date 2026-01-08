@@ -1,6 +1,10 @@
 package mocks
 
-import "snippetbox.davidortegafarrerons.com/internal/models"
+import (
+	"errors"
+
+	"snippetbox.davidortegafarrerons.com/internal/models"
+)
 
 type UserModel struct{}
 
@@ -11,6 +15,14 @@ func (m *UserModel) Insert(name, email, password string) error {
 	default:
 		return nil
 	}
+}
+
+func (m *UserModel) Get(id int) (*models.User, error) {
+	if id == 1 {
+		return &models.User{}, nil
+	}
+
+	return nil, errors.New("No user found")
 }
 func (m *UserModel) Authenticate(email, password string) (int, error) {
 	if email ==
